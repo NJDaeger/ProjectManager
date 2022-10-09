@@ -1,10 +1,24 @@
-import React, { useState } from "react";
-import { Navigate } from 'react-router-dom';
+import { ProgressSpinner } from "primereact/progressspinner";
+import { Toast } from "primereact/toast";
+import React, { useEffect, useState } from "react";
+import { MutableRefObject } from "react";
+import { useNavigate } from "react-router-dom";
+import { verifyAuthorized } from "../services/AuthService";
 
-const Home = ({user}) => {
-    if (!user) {
-        return <Navigate to="/"></Navigate>
-    } else return <>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Facilis nihil delectus, sequi fuga dolores porro fugit dolorem eligendi libero cupiditate ducimus laboriosam aliquid velit labore reprehenderit officia inventore, a possimus!
+interface HomeProps {
+    toast: MutableRefObject<null|Toast>
+}
+
+const Home = (props: HomeProps) => {
+    const navigate = useNavigate();
+    useEffect(() => {
+        verifyAuthorized({path: '/home'}).catch((err) => {
+            props.toast.current?.show({severity: "error", content: "You are not authorized for this action."})
+            navigate('/');
+        });
+    }, []);
+
+    return <>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Facilis nihil delectus, sequi fuga dolores porro fugit dolorem eligendi libero cupiditate ducimus laboriosam aliquid velit labore reprehenderit officia inventore, a possimus!
     Molestias, culpa maiores pariatur necessitatibus vel eius molestiae quibusdam nesciunt magnam. Velit fugiat autem nisi sapiente qui. Dolore doloribus at consequuntur? Dolore minima architecto dolor nam rerum veniam expedita? Dolores.
     Eum consequuntur, animi quis, maiores maxime temporibus, laborum totam doloribus provident quae voluptate asperiores accusamus dolorem quibusdam aspernatur quam molestiae quos ipsa velit vero perspiciatis nihil nobis repudiandae ex. Possimus?
     Deserunt nesciunt animi quis, eaque facere debitis beatae omnis sit delectus exercitationem excepturi illo voluptate adipisci tempora consectetur necessitatibus quo est. Iusto veniam libero nemo quo minus. Distinctio, quidem amet?

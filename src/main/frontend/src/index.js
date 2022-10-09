@@ -1,25 +1,23 @@
-import React from 'react';
+import App from './App.tsx';
 import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
+import PrimeReact from 'primereact/api';
 import reportWebVitals from './reportWebVitals';
+import { BrowserRouter } from 'react-router-dom';
+
 import "primereact/resources/themes/lara-light-indigo/theme.css";  //theme
 import "primereact/resources/primereact.min.css";                  //core css
-import "primeicons/primeicons.css";                                //icons
 import "/node_modules/primeflex/primeflex.css"
-import PrimeReact from 'primereact/api';
-import { Router } from 'react-router-dom';
+import "primeicons/primeicons.css";                                //icons
+import "./styles/style.scss";
+import './index.css';
 
 PrimeReact.ripple = true;
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <Router>
-    <App />
-  </Router>
-  // <React.StrictMode>
-  //   <App />
-  // </React.StrictMode>
+  <BrowserRouter>
+    <App></App>
+  </BrowserRouter>
 );
 
 // If you want to start measuring performance in your app, pass a function

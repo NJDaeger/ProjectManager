@@ -17,15 +17,17 @@ public interface WebappInterface {
      * @return the found, or newly created, web session
      */
     WebSession getOrCreateSession(UUID userId);
-
-
-    /**
-     * Peek at a web session by its session token
-     * @param token This sessions web token
-     * @return The found session, or null if no session has a matching token
-     */
-    WebSession peekSessionByToken(String token);
+//
+//
+//    /**
+//     * Peek at a web session by its session token
+//     * @param token This sessions web token
+//     * @return The found session, or null if no session has a matching token
+//     */
+//    WebSession peekSessionByToken(String token);
 
     void shutdown();
+
+    String getRoutePermission(String route);
 
 }

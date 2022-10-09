@@ -52,7 +52,7 @@ public class LogoutCommand implements SlashCommand {
                     .withEphemeral(true)
                     .withContent("You have no active session associated with your account.");//TODO custom message
         }
-        if (session.isLoggedIn()) session.logout();
+        session.logout(true);
         return event.reply()
                 .withEphemeral(true)
                 .withContent("You have been logged out of any logged in sessions."); //todo probably custom message

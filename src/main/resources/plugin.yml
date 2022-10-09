@@ -2,6 +2,6 @@ name: ProjectManager
 version: '${project.version}'
 main: com.njdaeger.projectmanager.ProjectManager
 api-version: 1.17
-depend: [ AuthenticationHub ]
+depend: [ AuthenticationHub, Vault ]
 authors: [ NJDaeger ]
 description: Project management platform for creative minecraft servers

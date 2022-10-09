@@ -6,8 +6,11 @@ import com.njdaeger.projectmanager.webapp.annotations.*;
 import com.njdaeger.projectmanager.webapp.auth.AuthController;
 import io.javalin.Javalin;
 import io.javalin.http.Handler;
+import io.javalin.http.HttpStatus;
 import io.javalin.http.staticfiles.Location;
+import net.milkbowl.vault.permission.Permission;
 import org.apache.log4j.BasicConfigurator;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -18,27 +21,56 @@ import java.util.stream.Stream;
 class ProjectManagerWebapp implements WebappInterface {
 
     private transient final Map<UUID, WebSession> sessionMap = new ConcurrentHashMap<>();
-    transient final Map<String, UUID> keyUidMap = new ConcurrentHashMap<>();
+    //    transient final Map<String, UUID> keyUidMap = new ConcurrentHashMap<>();
+    private final Permission permissionProvider;
     private final List<Object> controllers;
     private final ProjectManager plugin;
+
     private final PMConfig config;
     private final Javalin app;
+
+    private final Map<String, String> routePermissionMap = new ConcurrentHashMap<>() {{
+//        put("/home", "projectmanager.web.home");
+    }};
 
     public ProjectManagerWebapp(ProjectManager plugin, PMConfig config) {
         BasicConfigurator.configure();
 
+        var rsp = Bukkit.getServicesManager().getRegistration(Permission.class);
+        if (rsp == null) {
+            this.permissionProvider = null;
+            Bukkit.getLogger().warning("No Permission provider found by Vault. A default permission system will be enforced, where operators are allowed on pages deemed 'admin' and non operators are allowed on any other page.");
+        } else this.permissionProvider = rsp.getProvider();
+
         this.app = Javalin.create(cfg -> {
             cfg.staticFiles.add("/static", Location.CLASSPATH);
+//            cfg.staticFiles.add("/static");
             cfg.http.asyncTimeout = 30000L;
             cfg.http.defaultContentType = "application/json";
             cfg.routing.ignoreTrailingSlashes = true;
             cfg.routing.treatMultipleSlashesAsSingleSlash = true;
             cfg.requestLogger.http((ctx, ms) -> {
-                if (config.doRequestLogging()) System.out.printf("[%f ms] %s | %s | %s", ms, ctx.method().name(), ctx.result(), ctx.fullUrl());
+                if (config.doRequestLogging())
+                    plugin.getLogger().info(String.format("[%f ms] %s | %s | %s", ms, ctx.method().name(), ctx.result(), ctx.fullUrl()));
             });
         });
 
+        app.cfg.spaRoot.addFile("/", "/static/index.html", Location.CLASSPATH);
         app.exception(Exception.class, (e, ctx) -> e.printStackTrace());
+        app.before((ctx) -> {
+            var uid = ctx.sessionAttribute("user_id");
+            if (uid == null) return;//todo this should redirect
+            var permission = routePermissionMap.get(ctx.path());
+            if (permission == null) return;
+            if (config.doVerboseLogging())
+                plugin.getLogger().info(String.format("Permission check for [%s] accessing route [%s] requiring permission [%s]", uid, ctx.path(), permission));
+            if (!sessionMap.containsKey((UUID)uid) || !sessionMap.get((UUID)uid).hasPermission(permission)) {
+                if (config.doVerboseLogging())
+                    plugin.getLogger().info(String.format("[UNAUTHORIZED] for [%s] accessing route [%s] requiring permission [%s]", uid, ctx.path(), permission));
+                ctx.redirect("/", HttpStatus.UNAUTHORIZED);
+            } else if (config.doVerboseLogging())
+                plugin.getLogger().info(String.format("[AUTHORIZED] for [%s] accessing route [%s] requiring permission [%s]", uid, ctx.path(), permission));
+        });
 
         this.controllers = new ArrayList<>();
         this.plugin = plugin;
@@ -51,15 +83,13 @@ class ProjectManagerWebapp implements WebappInterface {
     }
 
     @Override
-    public WebSession peekSession(UUID userId) {
-        return sessionMap.get(userId);
+    public String getRoutePermission(String route) {
+        return routePermissionMap.get(route);
     }
 
     @Override
-    public WebSession peekSessionByToken(String token) {
-        var uuid = keyUidMap.get(token);
-        if (uuid == null) return null;
-        else return sessionMap.get(uuid);
+    public WebSession peekSession(UUID userId) {
+        return sessionMap.get(userId);
     }
 
     @Override
@@ -67,12 +97,11 @@ class ProjectManagerWebapp implements WebappInterface {
         var session = sessionMap.get(userId);
         if (session != null) {
             if (config.getSessionExpireTime() > 0 && ((config.getSessionExpireTime() + session.getSessionCreationTime()) - System.currentTimeMillis()) <= 0) {
-                session = new WebSession(userId, this);
+                session = new WebSession(userId, this, permissionProvider);
                 sessionMap.put(userId, session);
             }
-        }
-        else {
-            session = new WebSession(userId, this);
+        } else {
+            session = new WebSession(userId, this, permissionProvider);
             sessionMap.put(userId, session);
         }
         return session;
@@ -85,6 +114,10 @@ class ProjectManagerWebapp implements WebappInterface {
     @Override
     public void shutdown() {
         app.stop();
+    }
+
+    void clearSession(UUID user) {
+        sessionMap.remove(user);
     }
 
     private void addController(Object controller) {
@@ -111,7 +144,8 @@ class ProjectManagerWebapp implements WebappInterface {
                 addRoute(field, baseRoute, handler);
                 loaded.addAndGet(1);
             });
-            plugin.getLogger().info("[" + controller.getClass().getCanonicalName() + "] Loaded " + loaded.get() + "/" + Stream.of(controller.getClass().getDeclaredFields()).filter(this::isFieldAnnotatedRoute).count() + " routes defined.");
+            if (config.doVerboseLogging())
+                plugin.getLogger().info("[" + controller.getClass().getCanonicalName() + "] Loaded " + loaded.get() + "/" + Stream.of(controller.getClass().getDeclaredFields()).filter(this::isFieldAnnotatedRoute).count() + " routes defined.");
         });
     }
 
@@ -122,6 +156,11 @@ class ProjectManagerWebapp implements WebappInterface {
         else if (field.isAnnotationPresent(Delete.class)) app.delete(route, handler);
         else if (field.isAnnotationPresent(Patch.class)) app.patch(route, handler);
         else throw new RuntimeException("Unknown request operation");
+
+        if (field.isAnnotationPresent(com.njdaeger.projectmanager.webapp.annotations.Permission.class)) {
+            var permission = field.getAnnotation(com.njdaeger.projectmanager.webapp.annotations.Permission.class).permission();
+            routePermissionMap.put(route, permission);
+        }
     }
 
     private String getRoute(Field field) {

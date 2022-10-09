@@ -1,5 +1,8 @@
 package com.njdaeger.projectmanager.webapp;
 
+import net.milkbowl.vault.permission.Permission;
+import org.bukkit.Bukkit;
+
 import java.util.UUID;
 
 public class WebSession {
@@ -11,9 +14,11 @@ public class WebSession {
     private final UUID sessionOwner;
     private transient long otpCreation;
     private transient String otp;
+    private final Permission permissionProvider;
 
-    WebSession(UUID session, ProjectManagerWebapp app) {
+    WebSession(UUID session, ProjectManagerWebapp app, Permission permissionProvider) {
         this.sessionCreationTime = System.currentTimeMillis();
+        this.permissionProvider = permissionProvider;
         this.sessionOwner = session;
         this.isLoggedIn = false;
         this.app = app;
@@ -28,6 +33,14 @@ public class WebSession {
         return otpCreation;
     }
 
+    public boolean hasPermission(String permission) {
+        var player = Bukkit.getOfflinePlayer(sessionOwner);
+        if (player.getName() == null) return false;
+        else {//could be a problem if permission provider does not support null world...
+            return player.isOp() || permissionProvider.playerHas(null, player, permission);
+        }
+    }
+
     public boolean isMatch(String otherOtp) {
         if (this.otp == null || otherOtp == null) return false;
         if (this.otp.equals(otherOtp)) {
@@ -39,20 +52,20 @@ public class WebSession {
         }
     }
 
-    public void login(String token) {
-        if (!TokenUtil.GENERATED_TOKENS.contains(token)) throw new RuntimeException("User token has not been properly generated.");
-        else {
-            this.isLoggedIn = true;
-            this.lastLoginTime = System.currentTimeMillis();
-            app.keyUidMap.put(token, sessionOwner);
-            clearOTP();
-        }
+    public boolean login() {
+        if (isLoggedIn) return false;
+        this.isLoggedIn = true;
+        this.lastLoginTime = System.currentTimeMillis();
+        clearOTP();
+        return true;
     }
 
-    public void logout() {
+    public boolean logout(boolean hardLogout) {
+        if (!isLoggedIn) return false;
         this.isLoggedIn = false;
         clearOTP();
-        this.lastLoginTime = 0;
+        if (hardLogout) app.clearSession(sessionOwner);
+        return true;
     }
 
     public boolean isLoggedIn() {

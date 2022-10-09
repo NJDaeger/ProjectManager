@@ -4,6 +4,8 @@ import com.njdaeger.projectmanager.ProjectManager;
 import com.njdaeger.projectmanager.webapp.WebSession;
 import com.njdaeger.projectmanager.webapp.WebappInterface;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
+import discord4j.core.object.component.ActionRow;
+import discord4j.core.object.component.Button;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import reactor.core.publisher.Mono;
 
@@ -49,9 +51,13 @@ public class LoginCommand implements SlashCommand {
         WebSession session = app.getOrCreateSession(uuid);
         var otp = session.getOTP();
 
-        return event.reply()//TODO do what this message says, also make it a custom message
+//        Button.link("http://localhost:8080/discord_login?otp=" + otp, "Login");todo: button for logging in?
+
+        var message = event.reply()//TODO do what this message says, also make it a custom message
                 .withEphemeral(true)
-                .withContent("Your One Time Password is ||``" + otp + "``||. Do not share this password with anyone, if you need to disable your password, run the command ``/pmlogout``. If you do not disable your password, it will be disabled after 10 minutes, or upon a successful login.");
+                .withContent("Your One Time Password is ||``" + otp + "``||. Do not share this password with anyone. It will no longer be usable after a login");
+
+        return message;
     }
 
     @Override
