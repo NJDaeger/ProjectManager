@@ -13,18 +13,25 @@
     z-index: 100;
 }
 
+.quarterScale {
+    transform: scale(.25);
+}
+
 .plotted-logo {
     transform-origin: center;
-    position:absolute;
+    position: relative;
+    overflow: hidden;
+    
 
     >.plotted-container {
-        max-width: 21.25rem;
-        max-height: 10.5rem;
-        min-width: 21.25rem;
-        min-height: 10.5rem;
+        // max-width: 21.25rem;
+        // max-height: 10.5rem;
+        // min-width: 21.25rem;
+        // min-height: 10.5rem;
         display: flex;
         align-items: center;
         justify-content: center;
+        height: 100%;
 
         >.plotted-content-container {
             display: flex;

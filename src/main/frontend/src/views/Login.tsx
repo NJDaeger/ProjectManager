@@ -41,7 +41,7 @@ const Login = (props: LoginProps) => {
 
     return (
         <div className="w-full flex" style={{height: '100vh'}}>
-            <Logo style={{zIndex: "-1"}} className="w-full flex justify-content-center mt-8"></Logo>
+            <Logo style={{zIndex: "-1", transform:"scale(1.25)"}} className="w-full flex justify-content-center mt-8 absolute" textClassName="hidden sm:block"></Logo>
             <Card title="Login" footer={footer} className={"sm:w-full md:w-9 lg:w-6 xl:w-3 p-3 mx-auto my-auto text-center shadow-4 bg-primary-reverse" + (loaded ? "scaleout" : "")}>
                 <div className="pb-5">
                     <span className="p-float-label">

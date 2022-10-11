@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { verifyAuthorized } from "../services/AuthService";
 import { MenuItem } from "primereact/menuitem";
 import { Button } from "primereact/button";
+import Logo from "./Logo";
 
 interface NavigationProps {
     toast: MutableRefObject<null|Toast>
@@ -24,7 +25,7 @@ const Navigation = (props: NavigationProps) => {
 
     return <>
         <nav className="navbar bg-primary-reverse shadow-4">
-            <Button className="ml-3 p-button-primary p-button-text p-0 m-2"><span className="mr-1 ml-1 sm:mr-2 sm:ml-2 flex align-items-center font-bold text-700"><Avatar label="PM"></Avatar><span className="pl-2 hidden sm:inline">ProjectManager</span></span></Button>
+            <Button className="ml-3 p-button-primary p-button-text p-0 m-2"><span className="mr-1 ml-1 sm:mr-2 sm:ml-2 flex align-items-center font-bold text-700"><Logo className="mr-2" style={{width: "3.5rem", height: "2.5rem"}} containerStyle={{transform:"scale(.2)"}} textClassName="hidden"></Logo><span>Plotted</span></span></Button>
             <span className="vertical-bar mt-2 mb-2 mr-3 ml-2 bg-gray-500"></span>
             <TabMenu model={navitems} activeIndex={activeIndex} onTabChange={e => setActiveIndex(e.index)} className="mr-auto bg-transparent"></TabMenu> 
             <span className="vertical-bar mt-2 mb-2 mr-2 ml-3 bg-gray-500"></span>

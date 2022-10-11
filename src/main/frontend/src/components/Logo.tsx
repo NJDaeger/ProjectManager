@@ -2,18 +2,20 @@ import { CSSProperties } from "react";
 
 export interface LogoProps {
     className?: string,
+    containerStyle?: CSSProperties,
     pClassName?: string,
     dClassName?: string,
-    style?: CSSProperties
+    style?: CSSProperties,
+    textClassName?: string
 }
 
 const Logo = (props: LogoProps) => {
     return <>
         <div className={"plotted-logo " + (props.className ?? "")} style={props.style}>
-            <div className="plotted-container">
+            <div className="plotted-container"  style={props.containerStyle}>
                 <div className="plotted-content-container">
                     <span className="plotted-logo-text">
-                        <span>Plotted</span>
+                        <span className={props.textClassName}>Plotted</span>
                     </span>
                     <div className="plotted shadow-8">
                         <div className="slice">
