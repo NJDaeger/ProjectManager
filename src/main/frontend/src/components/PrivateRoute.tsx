@@ -9,10 +9,11 @@ interface PrivateRouteProps {
 }
 
 const PrivateRoute = (props: PrivateRouteProps) => {
-    const [authorized, setAuthorized] = useState<boolean|undefined>(undefined);
+    const [authorized, setAuthorized] = useState<boolean|undefined>(true);
     
     // console.log("TEST ");
     useEffect(() => {
+        return;
         if (authorized === undefined) {
             // console.log("EFFECT");
             verifyAuthorized({path: props.path }).then(res => {

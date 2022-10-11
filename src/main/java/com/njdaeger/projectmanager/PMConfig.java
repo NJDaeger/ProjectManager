@@ -5,8 +5,17 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.function.Predicate;
 
 public class PMConfig {
+
+    //database configuration
+    private String databaseHost;
+    private int databasePort;
+    private String databaseName;
+    private String databaseUsername;
+    private String databasePassword;
+    private String databasePrefix;
 
     //bot configuration
     private String clientId;
@@ -86,6 +95,14 @@ public class PMConfig {
             config.set("plugin.verboseLogging", false);
             this.requestLogging = false;
         }
+
+        this.databasePort = getOrSet("database.port", "The database port must be greater than or equal to 1024. Defaulting to " + 3306, 3306, (val) -> val < 1024);
+        this.databaseHost = getOrSet("database.host", "The database host must be set. Defaulting to '127.0.0.1'", "127.0.0.1", String::isEmpty);
+        this.databaseName = getOrSet("database.name", "The database name must be set. Defaulting to 'projectmanager'", "projectmanager", String::isEmpty);
+        this.databaseUsername = getOrSet("database.username", "The database username must be set. Defaulting to 'root'", "root", String::isEmpty);
+        this.databasePassword = getOrSet("database.password", "The database password must be set. Defaulting to 'password'", "password", String::isEmpty);
+        this.databasePrefix = getOrSet("database.prefix", "No database prefix defined. Defaulting to an empty string.", "");
+
         var cfg = (YamlConfiguration) config;
         try {
             cfg.save(configFile);
@@ -95,6 +112,60 @@ public class PMConfig {
 
     }
 
+    /**
+     * Get or set a configuration variable
+     * @param path The configuration path
+     * @param warning The warning spat into console when the value is not set
+     * @param defaultValue The default value to be set/returned if the value matches the "shouldNotMatch" predicate.
+     * @param shouldNotMatch The test this config value should return false for. If this predicate returns true on the config value, the default value will be used.
+     * @param <T> The type of value being set
+     * @return The set or gotten configuration value.
+     */
+    private <T> T getOrSet(String path, String warning, T defaultValue, Predicate<T> shouldNotMatch) {
+        if (shouldNotMatch != null && shouldNotMatch.test(defaultValue)) throw new RuntimeException("Default value for setting '" + path + "' cannot fail the restraint check.");
+        if (config.get(path) == null || (shouldNotMatch != null && shouldNotMatch.test((T)config.get(path)))) {
+            if (warning != null) plugin.getLogger().warning(warning);
+            config.set(path, defaultValue);
+            return defaultValue;
+        } else return (T) config.get(path);
+    }
+
+    /**
+     * Get or set a configuration variable
+     * @param path The configuration path
+     * @param warning The warning spat into console when the value is not set.
+     * @param defaultValue The default value to be set/returned if the value is not set.
+     * @param <T> The type of value being set
+     * @return The set or gotten configuration value.
+     */
+    private <T> T getOrSet(String path, String warning, T defaultValue) {
+        return getOrSet(path, warning, defaultValue, null);
+    }
+
+    public String getDatabaseHost() {
+        return databaseHost;
+    }
+
+    public int getDatabasePort() {
+        return databasePort;
+    }
+
+    public String getDatabaseName() {
+        return databaseName;
+    }
+
+    public String getDatabasePassword() {
+        return databasePassword;
+    }
+
+    public String getDatabaseUsername() {
+        return databaseUsername;
+    }
+
+    public String getDatabasePrefix() {
+        return databasePrefix;
+    }
+
     public String getBotToken() {
         return botToken;
     }
@@ -102,7 +173,6 @@ public class PMConfig {
     public String getClientId() {
         return clientId;
     }
-
 
     //todo remove if no longer needed
     public String getClientSecret() {

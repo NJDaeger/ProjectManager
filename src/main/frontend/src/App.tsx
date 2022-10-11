@@ -4,6 +4,7 @@ import Home from './views/Home';
 import { useRef } from 'react';
 import { Toast } from 'primereact/toast';
 import PrivateRoute from './components/PrivateRoute';
+import Navigation from './components/Navigation';
 
 function App() {
   const toast = useRef(null);
@@ -16,7 +17,13 @@ function App() {
               <Outlet/>
             </PrivateRoute>
           }>
-            <Route path='/home' element={<Home toast={toast}></Home>}></Route>
+            
+            <Route path='/home' element={
+              <>
+                <Navigation toast={toast}></Navigation>
+                <Home toast={toast}></Home>
+              </>
+            }></Route>
           </Route>
         </Routes>
         <Toast ref={toast}/>

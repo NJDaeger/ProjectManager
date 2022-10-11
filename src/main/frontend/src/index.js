@@ -4,7 +4,8 @@ import PrimeReact from 'primereact/api';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';
 
-import "primereact/resources/themes/lara-light-indigo/theme.css";  //theme
+// import "primereact/resources/themes/lara-light-indigo/theme.css";  //theme
+import "primereact/resources/themes/lara-dark-blue/theme.css";
 import "primereact/resources/primereact.min.css";                  //core css
 import "/node_modules/primeflex/primeflex.css"
 import "primeicons/primeicons.css";                                //icons
