@@ -1,15 +1,32 @@
 package com.njdaeger.projectmanager.dataaccess;
 
-public interface IDataAccess {
+import com.njdaeger.projectmanager.services.IConfigService;
+import com.njdaeger.projectmanager.services.IPlotService;
+import com.njdaeger.projectmanager.services.IUserService;
+import com.njdaeger.projectmanager.services.IWorldService;
+
+public interface IDataAccess<T> {
+
+    int getLatestDatabaseVersion();
 
     void initializeDatabase();
 
-    int update(String query);
+    IPlotService getPlotService();
 
-    int delete(String query);
+    IUserService getUserService();
 
-    int create(String query);
+    IWorldService getWorldService();
 
-    int select(String query);
+    IConfigService getConfigService();
+
+    T getProvider();
+
+//    int update(String query);
+//
+//    int delete(String query);
+//
+//    int create(String query);
+//
+//    int select(String query);
 
 }

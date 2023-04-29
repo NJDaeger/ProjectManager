@@ -8,12 +8,17 @@ import { login } from "../services/AuthService";
 import { MutableRefObject } from "react";
 import { useNavigate } from "react-router-dom";
 import Logo from "../components/Logo";
+import { NO_BACKEND } from "../services/ApiConstants";
+import { User } from "../models/UserModels";
+import useSession from "../hooks/useSession";
 
 interface LoginProps {
-    toast: MutableRefObject<null|Toast>;
+    toast: MutableRefObject<null|Toast>,
+    // loginHandler: (user: User) => void
 }
 
 const Login = (props: LoginProps) => {
+    const { session, setSession } = useSession();
     const [username, setUsername] = useState("");
     const [otp, setOtp] = useState("");
     const [loading, setLoading] = useState(false);
@@ -22,11 +27,23 @@ const Login = (props: LoginProps) => {
 
     const performLogin = async () => {
         setLoading(true);
+        if (NO_BACKEND) {
+            setTimeout(() => {
+                setLoading(false);
+                setLoaded(true);
+                // props.loginHandler({userId: "test", username: "Test"})
+                props.toast.current?.show({severity: 'success', summary: `Welcome back, ${username}!`, detail: 'Login successful.'});
+                setSession({roles: [1], username: username, userId: 1})
+                navigate('/home');
+            }, 5000);
+            return;
+        }
         login({username: username, otp: otp}).then((res) => {
             setLoading(false);
             setLoaded(true);
-            props.toast.current?.show({severity: 'success', summary: `Welcome back, ${username}!`, detail: 'Login successful.'});
+            // props.loginHandler({userId: res.userId, username: res.username})
             navigate('/home');
+            props.toast.current?.show({severity: 'success', summary: `Welcome back, ${username}!`, detail: 'Login successful.'});
         }).catch((err) => {
             setLoading(false);
             setLoaded(false);
@@ -40,8 +57,8 @@ const Login = (props: LoginProps) => {
     </span>;
 
     return (
-        <div className="w-full flex" style={{height: '100vh'}}>
-            <Logo style={{zIndex: "-1", transform:"scale(1.25)"}} className="w-full flex justify-content-center mt-8 absolute" textClassName="hidden sm:block"></Logo>
+        <div className="w-full flex justify-content-center" style={{height: '100vh'}}>
+            <Logo style={{zIndex: "-1", transform:"scale(1.25)", overflow:"unset"}} className="flex justify-content-center mt-8 absolute" textClassName="hidden sm:block"></Logo>
             <Card title="Login" footer={footer} className={"sm:w-full md:w-9 lg:w-6 xl:w-3 p-3 mx-auto my-auto text-center shadow-4 bg-primary-reverse" + (loaded ? "scaleout" : "")}>
                 <div className="pb-5">
                     <span className="p-float-label">

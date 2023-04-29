@@ -3,7 +3,10 @@ package com.njdaeger.projectmanager;
 import com.njdaeger.authenticationhub.ApplicationRegistry;
 import com.njdaeger.authenticationhub.discord.DiscordApplication;
 import com.njdaeger.authenticationhub.discord.DiscordUserProfile;
+import com.njdaeger.projectmanager.dataaccess.IDataAccess;
+import com.njdaeger.projectmanager.dataaccess.sql.impl.SqlDataAccess;
 import com.njdaeger.projectmanager.discordbot.ProjectManagerBotTask;
+import com.njdaeger.projectmanager.plugin.PlotCommands;
 import com.njdaeger.projectmanager.webapp.ProjectManagerWebappTask;
 import com.njdaeger.projectmanager.webapp.WebappInterface;
 import discord4j.common.util.Snowflake;
@@ -17,20 +20,21 @@ public final class ProjectManager extends JavaPlugin {
     private ProjectManagerBotTask projectManagerBotTask;
     private ProjectManagerWebappTask projectManagerWebappTask;
     private DiscordApplication discordApplication;
+    private IDataAccess dataAccess;
     private PMConfig config;
 
     @Override
     public void onEnable() {
         // Plugin startup logic
         this.config = new PMConfig(this);
-        resolveAuthhubIntegration();
+//        resolveAuthhubIntegration();
 
-        this.projectManagerBotTask = new ProjectManagerBotTask(this, config);
-        this.projectManagerBotTask.onEnable();
 
-        this.projectManagerWebappTask = new ProjectManagerWebappTask(this, config);
-        this.projectManagerWebappTask.onEnable();
+//        startDiscordBot();
+        startDatabase();
+//        startWebserver();
 
+        new PlotCommands(this);
     }
 
     @Override
@@ -40,18 +44,25 @@ public final class ProjectManager extends JavaPlugin {
     }
 
     public DiscordUserProfile getDiscordUser(UUID uuid) {
+        if (discordApplication == null) throw new RuntimeException("Authhub integration has not yet been initialized.");
         var connection = discordApplication.getConnection(uuid);
         if (connection == null) return null;
         return connection.getDiscordProfile();
     }
 
     public UUID getUserFromSnowflake(Snowflake snowflake) {
+        if (discordApplication == null) throw new RuntimeException("Authhub integration has not yet been initialized.");
         var connection = discordApplication.getConnections(user -> user.getDiscordProfile().snowflake().equalsIgnoreCase(snowflake.asString()));
         var res = connection.keySet().stream().findFirst();
         return res.orElse(null);
     }
 
-    public void log(String message) {
+    public IDataAccess<?> getDataAccess() {
+        if (dataAccess == null) throw new RuntimeException("Database has not yet been initialized.");
+        return dataAccess;
+    }
+
+    public void verbose(String message) {
         if (config.doVerboseLogging()) getLogger().info("[VERBOSE] " + message);
     }
 
@@ -60,11 +71,30 @@ public final class ProjectManager extends JavaPlugin {
     }
 
     public WebappInterface getWebappInterface() {
+        if (projectManagerWebappTask == null) throw new RuntimeException("The webapp has not yet been initialized.");
         return projectManagerWebappTask.getAppInterface();
     }
 
+    private void startDatabase() {
+        getLogger().info("Initializing database...");
+        this.dataAccess = switch (config.getDatabaseFormat().toLowerCase()) {
+            case "sql" -> new SqlDataAccess(this);
+            case "yml" -> throw new UnsupportedOperationException("yml format not supported yet.");
+            default -> throw new UnsupportedOperationException("Unknown database format, try 'sql' or 'yml'");
+        };
+    }
+
+
+    private void startDiscordBot() {
+        getLogger().info("Starting Discord bot...");
+        this.projectManagerBotTask = new ProjectManagerBotTask(this, config);
+        this.projectManagerBotTask.onEnable();
+    }
+
     private void startWebserver() {
-        getLogger().info("Starting internal webserver...");
+        getLogger().info("Starting PlotMan webserver...");
+        this.projectManagerWebappTask = new ProjectManagerWebappTask(this, config);
+        this.projectManagerWebappTask.onEnable();
     }
 
     private void resolveAuthhubIntegration() {

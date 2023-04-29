@@ -1,34 +1,42 @@
 import { useEffect, useState } from "react";
 import { ProgressSpinner } from 'primereact/progressspinner';
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet, useNavigate } from "react-router-dom";
 import { verifyAuthorized } from "../services/AuthService";
+import { User } from "../models/UserModels";
+import { NO_BACKEND } from "../services/ApiConstants";
 
 interface PrivateRouteProps {
+    user: User|null,
     path: string,
-    children: any
+    returnPath?: string,
+    children?: any
 }
 
 const PrivateRoute = (props: PrivateRouteProps) => {
-    const [authorized, setAuthorized] = useState<boolean|undefined>(true);
-    
-    // console.log("TEST ");
+    const [authorized, setAuthorized] = useState<boolean|undefined>(undefined);
+    const navigate = useNavigate();
+
     useEffect(() => {
-        return;
+        if (NO_BACKEND) return;
         if (authorized === undefined) {
-            // console.log("EFFECT");
+            console.log("verifying authorization...")
+            setAuthorized(undefined);
             verifyAuthorized({path: props.path }).then(res => {
-                // console.log("Authorized!")
                 setAuthorized(true);
+                console.log("authorized!")
             }).catch(err => {
-                // console.log("Not authorized.")
+                console.log(err);
                 setAuthorized(false);
+                console.log("not authorized!");
             });
         }
     }, []);
 
-    if (authorized === undefined) return <ProgressSpinner className="flex" style={{height:"90vh"}}/>
-    else if (!authorized) return <Navigate to="/"/>
-    return <>{props.children}</>
+    if (NO_BACKEND) return props.children ?? <Outlet></Outlet>;
+
+    if (authorized === undefined) return <ProgressSpinner className="flex" style={{height:"90vh"}}/>;
+    else if (!authorized) return navigate("/");
+    else return props.children ?? <Outlet></Outlet>;
 }
 
 export default PrivateRoute;

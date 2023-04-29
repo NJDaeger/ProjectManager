@@ -15,6 +15,7 @@ public class WebSession {
     private transient long otpCreation;
     private transient String otp;
     private final Permission permissionProvider;
+    private byte[] playerHead;
 
     WebSession(UUID session, ProjectManagerWebapp app, Permission permissionProvider) {
         this.sessionCreationTime = System.currentTimeMillis();
@@ -84,6 +85,14 @@ public class WebSession {
 
     public long getSessionCreationTime() {
         return sessionCreationTime;
+    }
+
+    public byte[] getPlayerHead() {
+        return playerHead;
+    }
+
+    public void setPlayerHead(byte[] imageData) {
+        this.playerHead = imageData;
     }
 
     public long getLastLoginTime() {

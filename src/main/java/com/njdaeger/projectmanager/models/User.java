@@ -1,6 +1,6 @@
-package com.njdaeger.projectmanager.webapp.model;
+package com.njdaeger.projectmanager.models;
 
 import java.util.UUID;
 
-public record User(UUID minecraftId, int id) {
+public record User(int id, UUID minecraftId, String userName) {
 }

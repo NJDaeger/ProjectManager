@@ -15,7 +15,7 @@ const Logo = (props: LogoProps) => {
             <div className="plotted-container"  style={props.containerStyle}>
                 <div className="plotted-content-container">
                     <span className="plotted-logo-text">
-                        <span className={props.textClassName}>Plotted</span>
+                        <span className={props.textClassName}>PlotMan</span>
                     </span>
                     <div className="plotted shadow-8">
                         <div className="slice">

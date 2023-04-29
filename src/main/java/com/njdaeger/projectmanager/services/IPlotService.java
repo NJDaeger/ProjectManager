@@ -1,8 +1,8 @@
 package com.njdaeger.projectmanager.services;
 
-import com.njdaeger.projectmanager.webapp.model.Plot;
-import com.njdaeger.projectmanager.webapp.model.PlotType;
-import com.njdaeger.projectmanager.webapp.model.Tag;
+import com.njdaeger.projectmanager.models.Plot;
+import com.njdaeger.projectmanager.models.Type;
+import com.njdaeger.projectmanager.models.Tag;
 import org.bukkit.Location;
 
 import java.util.List;
@@ -12,7 +12,7 @@ public interface IPlotService {
 
     Plot getPlotById(int plotId);
 
-    Plot createPlot(Plot parent, String name, String description, Tag[] tags, PlotType plotType, Location location, String[] requiredPermissionToView, String[] recommendedPermission);
+    Plot createPlot(Plot parent, String name, String description, Tag[] tags, Type type, Location location, String[] requiredPermissionToView, String[] recommendedPermission);
 
     List<Plot> findPlotByTag(Tag tag);
 
@@ -28,7 +28,7 @@ public interface IPlotService {
 
     boolean updatePlotTags(Plot currentPlot, Tag[] tags);
 
-    boolean updatePlotType(Plot currentPlot, PlotType type);
+    boolean updatePlotType(Plot currentPlot, Type type);
 
     boolean updatePlotLocation(Plot currentPlot, Location location);
 

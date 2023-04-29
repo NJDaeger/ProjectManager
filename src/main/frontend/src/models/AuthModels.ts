@@ -1,12 +1,12 @@
-export interface LoginModel {
+export interface LoginRequestModel {
     username: string,
     otp: string
 }
 
-export interface LogoutModel {
+export interface LogoutRequestModel {
     
 }
 
-export interface AuthorizeModel {
+export interface AuthorizeRequestModel {
     path: string
 }

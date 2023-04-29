@@ -32,6 +32,8 @@ public class PMConfig {
 
     private boolean verboseLogging;
 
+    private String databaseFormat;
+
     private Configuration config;
     private File configFile;
 
@@ -40,61 +42,18 @@ public class PMConfig {
     public PMConfig(ProjectManager plugin) {
         this.plugin = plugin;
         this.config = createConfig();
-        this.clientId = config.getString("bot.clientId");
-        if (this.clientId == null || this.clientId.isEmpty()) {
-            plugin.getLogger().warning("No client id specified.");
-            config.set("bot.clientId", "");
-            this.clientId = "";
-        }
-        this.clientSecret = config.getString("bot.clientSecret");
-        if (this.clientSecret == null || this.clientSecret.isEmpty()) {
-            plugin.getLogger().warning("No client secret specified.");
-            config.set("bot.clientSecret", "");
-            this.clientSecret = "";
-        }
-        this.botToken = config.getString("bot.token");
-        if (this.botToken == null || this.botToken.isEmpty()) {
-            plugin.getLogger().warning("No bot token specified. Visit https://discord.com/developers/applications/ and go to your created application, select 'bot' on the left navigation, and click 'Reset Token', or copy the token if it is available.");
-            config.set("bot.token", "");
-            this.botToken = "";
-        }
 
-        this.port = config.getInt("web.port");
-        if (this.port == 0 && config.get("web.port") == null) {
-            plugin.getLogger().warning("No webserver port specified. Defaulting to 8080.");
-            config.set("web.port", 8080);
-            this.port = 8080;
-        }
+        this.clientId = getOrSet("bot.clientId", "No clientId specified.", "");
+        this.clientSecret = getOrSet("bot.clientSecret", "No clientSecret specified.", "");
+        this.botToken = getOrSet("bot.token", "No bot token specified. Visit https://discord.com/developers/applications/ and go to your created applicaton, select 'bot' on the left navigation, and click 'Reset Token', or copy the token if it is available.", "");
 
-        if (this.port < 1024) throw new RuntimeException("You cannot set a port less than 1024.");
+        this.port = getOrSet("web.port", "No webserver port specified or port number is too low. Defaulting to 8080.", 8080, port -> port < 1024);
+        this.requestLogging = getOrSet("web.requestLogging", "No request logging specified, no requests to the webapp will be logged to console.", false);
+        this.sessionExpireTime = getOrSet("web.sessionExpireTime", "No sessionExpireTime specified in the config, defaulting to 1 hour.", 3600000);
+        this.otpExpireTime = getOrSet("web.otpExpireTime", "otpExpireTime either too low (less than 10 seconds) or not specified. Defaulting to 5 minutes.", 6000000);
 
-        this.requestLogging = config.getBoolean("web.requestLogging");
-        if (config.get("web.requestLogging") == null) {
-            plugin.getLogger().warning("No request logging specified, no requests to the webapp will be logged to console.");
-            config.set("web.requestLogging", false);
-            this.requestLogging = false;
-        }
-
-        this.sessionExpireTime = config.getLong("web.sessionExpireTime");
-        if (config.get("web.sessionExpireTime") == null) {
-            plugin.getLogger().warning("No sessionExpireTime specified in the config, defaulting to 3600000ms (1 hour)");
-            config.set("web.sessionExpireTime", 3600000L);
-            this.sessionExpireTime = 3600000L;
-        }
-
-        this.otpExpireTime = config.getLong("web.otpExpireTime");
-        if (this.otpExpireTime < 10000L || config.get("web.sessionExpireTime") == null) {
-            plugin.getLogger().warning("otpExpireTime either too low (less than 10 seconds) or not specified. Defaulting to 5 minutes.");
-            config.set("web.otpExpireTime", 600000L);
-            this.sessionExpireTime = 600000L;
-        }
-
-        this.requestLogging = config.getBoolean("plugin.verboseLogging");
-        if (config.get("plugin.verboseLogging") == null) {
-            plugin.getLogger().warning("No verbose logging specified, defaulting to false");
-            config.set("plugin.verboseLogging", false);
-            this.requestLogging = false;
-        }
+        this.verboseLogging = getOrSet("plugin.verboseLogging",  "No verbose logging specified, defaulting to false.", false);
+        this.databaseFormat = getOrSet("plugin.databaseFormat", "No database format specified, defaulting to 'sql' Options are 'sql' and 'yml'", "sql");
 
         this.databasePort = getOrSet("database.port", "The database port must be greater than or equal to 1024. Defaulting to " + 3306, 3306, (val) -> val < 1024);
         this.databaseHost = getOrSet("database.host", "The database host must be set. Defaulting to '127.0.0.1'", "127.0.0.1", String::isEmpty);
@@ -215,4 +174,7 @@ public class PMConfig {
     }
 
 
+    public String getDatabaseFormat() {
+        return databaseFormat;
+    }
 }
